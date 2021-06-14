@@ -40,13 +40,14 @@ export class DiscordBotConstruct extends Construct {
       entry: path.join(__dirname, '../functions/DiscordBotFunction.js'),
       handler: 'handler',
       environment: {
-        DISCORD_BOT_API_KEY_NAME: this.discordAPISecrets.secretName,
+        DISCORD_BOT_API_KEY_NAME: this.discordAPISecrets.secretArn,
         COMMAND_LAMBDA_ARN: props.commandsLambdaFunction.functionArn,
       },
       timeout: Duration.seconds(3),
     });
     props.commandsLambdaFunction.addEnvironment(
-        'DISCORD_BOT_API_KEY_NAME', this.discordAPISecrets.secretName);
+      'DISCORD_BOT_API_KEY_NAME', this.discordAPISecrets.secretArn,
+    );
 
     this.discordAPISecrets.grantRead(discordBotLambda);
     this.discordAPISecrets.grantRead(props.commandsLambdaFunction);
