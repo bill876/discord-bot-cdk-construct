@@ -12,6 +12,7 @@
     "/dist"
   ],
   "scripts": {
+    "prepare": "npm run build",
     "build": "tsc",
     "watch": "tsc -w",
     "lint": "eslint src/*/*.ts",
@@ -81,7 +82,6 @@
     "aws-sdk-mock": "^5.1.0",
     "axios": "^0.21.1",
     "requests": "^0.3.0",
-    "source-map-support": "^0.5.16",
     "tweetnacl": "^0.14.5"
   }
 }
