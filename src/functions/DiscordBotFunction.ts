@@ -31,8 +31,8 @@ async function getBotUserPublicKey() {
 export async function handler(
   event: DiscordEventRequest,
   context: Context,
-  callback: Callback)
-: Promise<DiscordEventResponse> {
+  callback: Callback
+): Promise<DiscordEventResponse> {
   console.log(`Received event: ${JSON.stringify(event)}`);
 
   const verifyPromise = verifyEvent(event);

@@ -3,7 +3,6 @@ import {Cors, LambdaIntegration, RequestValidator, RestApi} from '@aws-cdk/aws-a
 import {NodejsFunction} from '@aws-cdk/aws-lambda-nodejs';
 import {Construct, Duration} from '@aws-cdk/core';
 import * as path from 'path';
-import {Secret} from '@aws-cdk/aws-secretsmanager';
 import { IStringParameter } from '@aws-cdk/aws-ssm';
 
 /**
@@ -20,11 +19,6 @@ export interface DiscordBotConstructProps {
  */
 export class DiscordBotConstruct extends Construct {
   /**
-   * The Secrets for our Discord APIs.
-   */
-  // public readonly discordAPISecrets: Secret;
-
-  /**
    * The constructor for building the stack.
    * @param {Construct} scope The Construct scope to create the Construct in.
    * @param {string} id The ID of the Construct to use.
@@ -32,9 +26,6 @@ export class DiscordBotConstruct extends Construct {
    */
   constructor(scope: Construct, id: string, props: DiscordBotConstructProps) {
     super(scope, id);
-
-    // Create our Secrets for our Discord APIs.
-    // this.discordAPISecrets = new Secret(this, 'discord-bot-api-key');
 
     // Create the Lambda for handling Interactions from our Discord bot.
     const discordBotLambda = new NodejsFunction(this, 'discord-bot-lambda', {
