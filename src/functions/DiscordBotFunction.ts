@@ -1,11 +1,25 @@
 import {Context, Callback} from 'aws-lambda';
 import {DiscordEventRequest, DiscordEventResponse} from '../types';
-import {getDiscordSecrets} from './utils/DiscordSecrets';
-import {Lambda} from 'aws-sdk';
+import {Lambda, SSM} from 'aws-sdk';
 import {commandLambdaARN} from './constants/EnvironmentProps';
 import {sign} from 'tweetnacl';
 
 const lambda = new Lambda();
+
+const BOT_USER_PUBLIC_KEY_PARAMETER_NAME = process.env.BOT_USER_PUBLIC_KEY_PARAMETER_NAME;
+const ssm = new SSM({apiVersion: '2014-11-06'});
+let _botUserPublicKey = '';
+
+async function getBotUserPublicKey() {
+  if (!_botUserPublicKey) {
+    console.log('Public Key not cached, retrieving...');
+    if (BOT_USER_PUBLIC_KEY_PARAMETER_NAME) {
+      const response = await ssm.getParameter({ Name: BOT_USER_PUBLIC_KEY_PARAMETER_NAME }).promise();
+      _botUserPublicKey = response.Parameter?.Value || '';
+    }
+  }
+  return _botUserPublicKey;
+}
 
 /**
  * Handles incoming events from the Discord bot.
@@ -14,8 +28,11 @@ const lambda = new Lambda();
  * @param {Callback} callback A callback to handle the request.
  * @return {DiscordEventResponse} Returns a response to send back to Discord.
  */
-export async function handler(event: DiscordEventRequest, context: Context,
-    callback: Callback): Promise<DiscordEventResponse> {
+export async function handler(
+  event: DiscordEventRequest,
+  context: Context,
+  callback: Callback
+): Promise<DiscordEventResponse> {
   console.log(`Received event: ${JSON.stringify(event)}`);
 
   const verifyPromise = verifyEvent(event);
@@ -58,12 +75,12 @@ export async function handler(event: DiscordEventRequest, context: Context,
 export async function verifyEvent(event: DiscordEventRequest): Promise<boolean> {
   try {
     console.log('Getting Discord secrets...');
-    const discordSecrets = await getDiscordSecrets();
+    const botUserPublicKey = await getBotUserPublicKey();
     console.log('Verifying incoming event...');
     const isVerified = sign.detached.verify(
         Buffer.from(event.timestamp + JSON.stringify(event.jsonBody)),
         Buffer.from(event.signature, 'hex'),
-        Buffer.from(discordSecrets?.publicKey ?? '', 'hex'),
+        Buffer.from(botUserPublicKey, 'hex'),
     );
     console.log('Returning verification results...');
     return isVerified;

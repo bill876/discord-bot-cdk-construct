@@ -3,7 +3,7 @@ import {Cors, LambdaIntegration, RequestValidator, RestApi} from '@aws-cdk/aws-a
 import {NodejsFunction} from '@aws-cdk/aws-lambda-nodejs';
 import {Construct, Duration} from '@aws-cdk/core';
 import * as path from 'path';
-import {Secret} from '@aws-cdk/aws-secretsmanager';
+import { IStringParameter } from '@aws-cdk/aws-ssm';
 
 /**
  * The properties required for the Discord Bot construct. Specifically
@@ -11,17 +11,13 @@ import {Secret} from '@aws-cdk/aws-secretsmanager';
  */
 export interface DiscordBotConstructProps {
   commandsLambdaFunction: Function;
+  botUserPublicKeyParameter: IStringParameter;
 }
 
 /**
  * A CDK Construct for setting up a serverless Discord bot.
  */
 export class DiscordBotConstruct extends Construct {
-  /**
-   * The Secrets for our Discord APIs.
-   */
-  public readonly discordAPISecrets: Secret;
-
   /**
    * The constructor for building the stack.
    * @param {Construct} scope The Construct scope to create the Construct in.
@@ -31,26 +27,18 @@ export class DiscordBotConstruct extends Construct {
   constructor(scope: Construct, id: string, props: DiscordBotConstructProps) {
     super(scope, id);
 
-    // Create our Secrets for our Discord APIs.
-    this.discordAPISecrets = new Secret(this, 'discord-bot-api-key');
-
     // Create the Lambda for handling Interactions from our Discord bot.
     const discordBotLambda = new NodejsFunction(this, 'discord-bot-lambda', {
       runtime: Runtime.NODEJS_14_X,
       entry: path.join(__dirname, '../functions/DiscordBotFunction.js'),
       handler: 'handler',
       environment: {
-        DISCORD_BOT_API_KEY_NAME: this.discordAPISecrets.secretArn,
+        BOT_USER_PUBLIC_KEY_PARAMETER_NAME: props.botUserPublicKeyParameter.parameterName,
         COMMAND_LAMBDA_ARN: props.commandsLambdaFunction.functionArn,
       },
       timeout: Duration.seconds(3),
     });
-    props.commandsLambdaFunction.addEnvironment(
-      'DISCORD_BOT_API_KEY_NAME', this.discordAPISecrets.secretArn,
-    );
-
-    this.discordAPISecrets.grantRead(discordBotLambda);
-    this.discordAPISecrets.grantRead(props.commandsLambdaFunction);
+    props.botUserPublicKeyParameter.grantRead(discordBotLambda);
     props.commandsLambdaFunction.grantInvoke(discordBotLambda);
 
     // Create our API Gateway
