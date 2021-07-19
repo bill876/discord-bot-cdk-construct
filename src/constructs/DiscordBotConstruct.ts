@@ -4,7 +4,7 @@ import {NodejsFunction} from '@aws-cdk/aws-lambda-nodejs';
 import {Construct, Duration} from '@aws-cdk/core';
 import * as path from 'path';
 import {Secret} from '@aws-cdk/aws-secretsmanager';
-import { StringParameter } from '@aws-cdk/aws-ssm';
+import { IStringParameter } from '@aws-cdk/aws-ssm';
 
 /**
  * The properties required for the Discord Bot construct. Specifically
@@ -12,7 +12,7 @@ import { StringParameter } from '@aws-cdk/aws-ssm';
  */
 export interface DiscordBotConstructProps {
   commandsLambdaFunction: Function;
-  botUserPublicKeyParameter: StringParameter;
+  botUserPublicKeyParameter: IStringParameter;
 }
 
 /**
