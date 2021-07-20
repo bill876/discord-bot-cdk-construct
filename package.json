@@ -13,8 +13,8 @@
     "/src"
   ],
   "scripts": {
-    "prepare": "npm run build",
-    "prepublish": "npm run build",
+    "prepare": "echo 'prepare' && npm run build",
+    "prepublish": "echo 'prepublish' && npm run build",
     "build": "tsc",
     "watch": "tsc -w",
     "lint": "eslint src/*/*.ts",
